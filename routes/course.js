@@ -4,7 +4,9 @@ const courseValidtaion = require("../validation").courseVaildation;
 
 
 router.get("/testAPI", (req, res) => {
-    return res.send("成功連結course route...");
+    return res.json({
+        user: req.user,
+    });
   });
 
 

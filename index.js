@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const authRoute = require("./routes").auth;
 const courseRoute = require("./routes").course;
+const authenticateToken = require("./middleware/requireAuth");
 const port = 8080;
 
 // 連結MongoDB
@@ -22,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/user", authRoute);
-app.use("/api/courses", courseRoute);
+app.use("/api/courses", authenticateToken, courseRoute);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

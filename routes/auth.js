@@ -27,8 +27,8 @@ router.post("/register", async (req, res) => {
 
   try {
     let savedUser = await newUser.save();
-    return res.send({
-      message: "使用者成功儲存。",
+    return res.json({
+      message: "註冊成功",
       savedUser,
     });
   } catch (e) {
@@ -48,11 +48,11 @@ router.post("/login", async (req, res) => {
 
   let result;
   try {
-    result = bcrypt.compare(req.body.password, foundUser.password);
+    result = await bcrypt.compare(req.body.password, foundUser.password);
     if (result) {
       const tokenObject = { _id: foundUser._id, email: foundUser.email };
       const token = jwt.sign(tokenObject, process.env.SECRET);
-      res.send({
+      res.json({
         message: "成功登入",
         token: token,
       });
