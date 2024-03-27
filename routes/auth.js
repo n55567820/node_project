@@ -5,14 +5,11 @@ const User = require("../models").user;
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
+
 router.use((req, res, next) => {
   console.log("正在接收一個關於auth有關的請求");
   next();
 });
-
-// router.get("/testAPI", (req, res) => {
-//   return res.send("成功連結auth route...");
-// });
 
 router.post("/register", async (req, res) => {
   // check data
@@ -63,5 +60,6 @@ router.post("/login", async (req, res) => {
     return res.status(500).send(err);
   }
 });
+
 
 module.exports = router;
