@@ -6,6 +6,7 @@ dotenv.config();
 const authRoute = require("./routes").auth;
 const courseRoute = require("./routes").course;
 const authenticateToken = require("./middleware/requireAuth");
+const cors = require("cors");
 const port = 8080;
 
 // 連結MongoDB
@@ -21,6 +22,7 @@ mongoose
 // middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 
 app.use("/api/user", authRoute);
 app.use("/api/courses", authenticateToken, courseRoute);
