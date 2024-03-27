@@ -12,6 +12,19 @@ router.use((req, res, next) => {
 });
 
 router.post("/register", async (req, res) => {
+  /*  #swagger.tags = ['User']
+      #swagger.description = 'Endpoint to sign up a specific user'
+      #swagger.parameters['body'] = {
+        in: 'body',
+        description: 'User data.',
+        required: true,
+        schema: {
+            username: "user",
+            password: "1234"
+        }
+      }
+  */
+
   // check data
   const { error } = registerValidation(req.body);
   if (error) return res.status(400).send(error.details[0].message);
@@ -34,6 +47,19 @@ router.post("/register", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
+  /*    #swagger.tags = ['User']
+        #swagger.description = 'Endpoint to sign in a specific user'
+        #swagger.parameters['body'] = {
+          in: 'body',
+          description: 'User data.',
+          required: true,
+          schema: {
+              username: "user",
+              password: "1234"
+          }
+        }
+  */
+
   // check data
   const { error } = loginValidation(req.body);
   if (error) return res.status(400).send(error.details[0].message);
