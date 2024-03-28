@@ -19,7 +19,9 @@ router.post("/register", async (req, res) => {
         required: true,
         schema: {
             username: "user",
-            password: "1234"
+            email: "user@google.com",
+            password: "1234",
+            role: "student or instructor"
         }
       }
   */
@@ -107,7 +109,7 @@ router.post("/token/refresh", async (req, res) => {
 
   // check data
   if (!req.body.refresh) return res.status(400).send(`"refresh" is required`);
-  
+
   try {
     jwt.verify(req.body.refresh, process.env.SECRET, async (err, user) => {
       if (err) {
@@ -120,16 +122,15 @@ router.post("/token/refresh", async (req, res) => {
       const access = jwt.sign(tokenObject, process.env.SECRET, {
         expiresIn: "30m",
       });
-      
+
       res.json({
         message: "SUCCESS",
-        access
-      })
+        access,
+      });
     });
   } catch (e) {
     return res.status(500).send(err);
   }
 });
-
 
 module.exports = router;
