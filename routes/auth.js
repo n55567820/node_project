@@ -5,7 +5,6 @@ const User = require("../models").user;
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-
 router.use((req, res, next) => {
   console.log("正在接收一個關於auth有關的請求");
   next();
@@ -74,14 +73,59 @@ router.post("/login", async (req, res) => {
     result = await bcrypt.compare(req.body.password, foundUser.password);
     if (result) {
       const tokenObject = { _id: foundUser._id, email: foundUser.email };
-      const token = jwt.sign(tokenObject, process.env.SECRET);
+      const access = jwt.sign(tokenObject, process.env.SECRET, {
+        expiresIn: "30m",
+      });
+      const refresh = jwt.sign(tokenObject, process.env.SECRET, {
+        expiresIn: "30d",
+      });
       res.json({
         message: "成功登入",
-        token: token,
+        access,
+        refresh,
       });
     } else {
       return res.status(401).send("密碼錯誤");
     }
+  } catch (e) {
+    return res.status(500).send(err);
+  }
+});
+
+router.post("/token/refresh", async (req, res) => {
+  /*    #swagger.tags = ['User']
+        #swagger.description = 'Endpoint to  get a new access token'
+        #swagger.parameters['body'] = {
+          in: 'body',
+          description: 'refresh JWT token',
+          required: true,
+          schema: {
+              refresh: "JWT token"
+          }
+        }
+  */
+
+  // check data
+  if (!req.body.refresh) return res.status(400).send(`"refresh" is required`);
+  
+  try {
+    jwt.verify(req.body.refresh, process.env.SECRET, async (err, user) => {
+      if (err) {
+        return res.status(403).send({
+          error: "驗證錯誤 or 已過期",
+        });
+      }
+
+      const tokenObject = { _id: user._id, email: user.email };
+      const access = jwt.sign(tokenObject, process.env.SECRET, {
+        expiresIn: "30m",
+      });
+      
+      res.json({
+        message: "SUCCESS",
+        access
+      })
+    });
   } catch (e) {
     return res.status(500).send(err);
   }

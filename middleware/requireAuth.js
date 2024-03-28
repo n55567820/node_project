@@ -15,7 +15,7 @@ const authenticateToken = (req, res, next) => {
   jwt.verify(token, process.env.SECRET, async (err, user) => {
     if (err) {
       return res.status(403).send({
-        error: "驗證錯誤",
+        error: "驗證錯誤 or 已過期",
       });
     }
 
