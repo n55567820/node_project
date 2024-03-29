@@ -1,6 +1,8 @@
 const router = require("express").Router();
 const registerValidation = require("../validation").registerVaildation;
 const loginValidation = require("../validation").loginValidation;
+const passwordValidation = require("../validation").passwordValidation;
+const authenticateToken = require("../middleware/requireAuth");
 const User = require("../models").user;
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -34,13 +36,13 @@ router.post("/register", async (req, res) => {
   if (emailExist) return res.status(400).send("此信箱已經被註冊過了。。。");
   // new user
   let { email, username, password, role } = req.body;
-  let newUser = User({ email, username, password, role });
+  const hashValue = await bcrypt.hash(password, 10);
+  let newUser = User({ email, username, password: hashValue, role });
 
   try {
-    let savedUser = await newUser.save();
+    await newUser.save();
     return res.json({
-      message: "註冊成功",
-      savedUser,
+      message: "註冊成功"
     });
   } catch (e) {
     return res.status(500).send("無法儲存使用者....");
@@ -90,9 +92,60 @@ router.post("/login", async (req, res) => {
       return res.status(401).send("密碼錯誤");
     }
   } catch (e) {
-    return res.status(500).send(err);
+    return res.status(500).send(e);
   }
 });
+
+router.post("/update/password", authenticateToken, async (req, res) => {
+  /*  #swagger.tags = ['User']
+      #swagger.description = 'Endpoint to  update password'
+      #swagger.parameters['body'] = {
+        in: 'body',
+        description: 'update password',
+        required: true,
+        schema: {
+            password: "password",
+            newPassword1: "newPassword1",
+            newPassword2: "newPassword2"
+        }
+      }
+      #swagger.security = [{
+            "apiKeyAuth": []
+      }]
+  */
+  
+  // check data
+  const { error } = passwordValidation(req.body);
+  if (error) return res.status(400).send(error.details[0].message);
+  
+  try {
+    // ckeck password
+    const foundUser = await User.findOne({ email: req.user.email });
+    const result = await bcrypt.compare(req.body.password, foundUser.password);
+    if (!result) {
+      return res.status(401).send("密碼錯誤");
+    }
+    // ckeck newPassword
+    if (req.body.newPassword1 !== req.body.newPassword2) {
+      return res.status(401).send("新密碼不一致");
+    }
+
+    const hashValue = await bcrypt.hash(req.body.newPassword1, 10);
+    let updatefoundUser = await User.findOneAndUpdate({ _id: req.user._id }, {
+      password: hashValue
+    }, {
+      new: true,
+      runValidators: true,
+    });
+
+    return res.send({
+      message: "密碼更新成功"
+    });
+
+  } catch (e) {
+    return res.status(500).send(e);
+  }
+})
 
 router.post("/token/refresh", async (req, res) => {
   /*    #swagger.tags = ['User']

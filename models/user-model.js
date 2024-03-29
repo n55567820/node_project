@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const bcrypt = require("bcrypt");
 
 const userSchema = new Schema({
   username: {
@@ -38,12 +37,5 @@ userSchema.methods.isInstructor = function () {
   return this.role == "instructor";
 };
 
-userSchema.pre("save", async function (next) {
-  if (this.isNew || this.isModified("password")) {
-    const hashValue = await bcrypt.hash(this.password, 10);
-    this.password = hashValue;
-  }
-  next();
-});
 
 module.exports = mongoose.model("User", userSchema);

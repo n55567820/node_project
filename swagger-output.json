@@ -110,6 +110,66 @@
         }
       }
     },
+    "/api/user/update/password": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "description": "Endpoint to update password",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "update password",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "password": {
+                  "type": "string",
+                  "example": "password"
+                },
+                "newPassword1": {
+                  "type": "string",
+                  "example": "newPassword1"
+                },
+                "newPassword2": {
+                  "type": "string",
+                  "example": "newPassword2"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
     "/api/user/token/refresh": {
       "post": {
         "tags": [

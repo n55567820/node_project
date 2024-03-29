@@ -20,6 +20,16 @@ const loginValidation = (data) => {
   return schema.validate(data);
 };
 
+const passwordValidation = (data) => {
+  const schema = Joi.object({
+    password: Joi.string().min(6).max(255).required(),
+    newPassword1: Joi.string().min(6).max(255).required(),
+    newPassword2: Joi.string().min(6).max(255).required(),
+  });
+
+  return schema.validate(data);
+};
+
 const courseVaildation = (data) => {
   const schema = Joi.object({
     title: Joi.string().min(6).max(50).required(),
@@ -32,4 +42,5 @@ const courseVaildation = (data) => {
 
 module.exports.registerVaildation = registerVaildation;
 module.exports.loginValidation = loginValidation;
+module.exports.passwordValidation = passwordValidation;
 module.exports.courseVaildation = courseVaildation;
