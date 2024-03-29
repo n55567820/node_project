@@ -24,6 +24,12 @@ const authenticateToken = (req, res, next) => {
         error: "驗證錯誤",
     });
 
+    if (foundUser.confirmed === false) {
+      return res.status(403).send({
+        error: "信箱還未認證",
+      });
+    }
+
     req.user = user;
     next();
   });

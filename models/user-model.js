@@ -23,6 +23,10 @@ const userSchema = new Schema({
     enum: ["student", "instructor"],
     required: true,
   },
+  confirmed: {
+    type: Boolean,
+    default: false,
+  },
   date: {
     type: Date,
     default: Date.now,

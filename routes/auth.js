@@ -6,6 +6,15 @@ const authenticateToken = require("../middleware/requireAuth");
 const User = require("../models").user;
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "Gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+});
 
 router.use((req, res, next) => {
   console.log("正在接收一個關於auth有關的請求");
@@ -41,11 +50,57 @@ router.post("/register", async (req, res) => {
 
   try {
     await newUser.save();
+
+    // send confirm mail
+    const emailToken = jwt.sign({ email }, process.env.SECRET);
+    const url = `http://localhost:8080/api/user/confirmation/${emailToken}`;
+
+    await transporter.verify();
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: "Confirm Email",
+      html: `Please click this email to confirm your email: <a href="${url}">${url}</a>`,
+    };
+    transporter.sendMail(mailOptions);
+
     return res.json({
-      message: "註冊成功"
+      message: "註冊成功",
     });
   } catch (e) {
     return res.status(500).send("無法儲存使用者....");
+  }
+});
+
+router.get("/confirmation/:emailToken", async (req, res) => {
+  // #swagger.ignore = true
+
+  try {
+    const { emailToken } = req.params;
+    jwt.verify(emailToken, process.env.SECRET, async (err, info) => {
+      if (err) {
+        return res.status(403).send({
+          error: "驗證錯誤",
+        });
+      }
+
+      await User.findOneAndUpdate(
+        { email: info.email },
+        {
+          confirmed: true,
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+      return res.send({
+        message: "信箱驗證成功",
+      });
+    });
+  } catch (e) {
+    return res.status(500).send(e);
   }
 });
 
@@ -72,25 +127,23 @@ router.post("/login", async (req, res) => {
     return res.status(400).send("無法找到使用者");
   }
 
-  let result;
   try {
-    result = await bcrypt.compare(req.body.password, foundUser.password);
-    if (result) {
-      const tokenObject = { _id: foundUser._id, email: foundUser.email };
-      const access = jwt.sign(tokenObject, process.env.SECRET, {
-        expiresIn: "30m",
-      });
-      const refresh = jwt.sign(tokenObject, process.env.SECRET, {
-        expiresIn: "30d",
-      });
-      res.json({
-        message: "成功登入",
-        access,
-        refresh,
-      });
-    } else {
-      return res.status(401).send("密碼錯誤");
-    }
+    // check password
+    const result = await bcrypt.compare(req.body.password, foundUser.password);
+    if (!result) return res.status(401).send("密碼錯誤");
+
+    const tokenObject = { _id: foundUser._id, email: foundUser.email };
+    const access = jwt.sign(tokenObject, process.env.SECRET, {
+      expiresIn: "30m",
+    });
+    const refresh = jwt.sign(tokenObject, process.env.SECRET, {
+      expiresIn: "30d",
+    });
+    res.json({
+      message: "成功登入",
+      access,
+      refresh,
+    });
   } catch (e) {
     return res.status(500).send(e);
   }
@@ -113,39 +166,43 @@ router.post("/update/password", authenticateToken, async (req, res) => {
             "apiKeyAuth": []
       }]
   */
-  
+
   // check data
   const { error } = passwordValidation(req.body);
   if (error) return res.status(400).send(error.details[0].message);
-  
+
   try {
     // ckeck password
     const foundUser = await User.findOne({ email: req.user.email });
     const result = await bcrypt.compare(req.body.password, foundUser.password);
-    if (!result) {
-      return res.status(401).send("密碼錯誤");
-    }
+    if (!result) return res.status(401).send("密碼錯誤");
+
     // ckeck newPassword
-    if (req.body.newPassword1 !== req.body.newPassword2) {
+    if (req.body.password === req.body.newPassword1) {
+      return res.status(401).send("與舊密碼相同");
+    } else if (req.body.newPassword1 !== req.body.newPassword2) {
       return res.status(401).send("新密碼不一致");
     }
 
     const hashValue = await bcrypt.hash(req.body.newPassword1, 10);
-    let updatefoundUser = await User.findOneAndUpdate({ _id: req.user._id }, {
-      password: hashValue
-    }, {
-      new: true,
-      runValidators: true,
-    });
+    await User.findOneAndUpdate(
+      { _id: req.user._id },
+      {
+        password: hashValue,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     return res.send({
-      message: "密碼更新成功"
+      message: "密碼更新成功",
     });
-
   } catch (e) {
     return res.status(500).send(e);
   }
-})
+});
 
 router.post("/token/refresh", async (req, res) => {
   /*    #swagger.tags = ['User']
