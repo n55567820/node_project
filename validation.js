@@ -30,6 +30,22 @@ const passwordValidation = (data) => {
   return schema.validate(data);
 };
 
+const emailValidation = (data) => {
+  const schema = Joi.object({
+    email: Joi.string().min(6).max(50).required().email()
+  });
+
+  return schema.validate(data);
+};
+
+const resetPasswordValidation = (data) => {
+  const schema = Joi.object({
+    password: Joi.string().min(6).max(255).required(),
+  });
+
+  return schema.validate(data);
+};
+
 const courseVaildation = (data) => {
   const schema = Joi.object({
     title: Joi.string().min(6).max(50).required(),
@@ -43,4 +59,6 @@ const courseVaildation = (data) => {
 module.exports.registerVaildation = registerVaildation;
 module.exports.loginValidation = loginValidation;
 module.exports.passwordValidation = passwordValidation;
+module.exports.emailValidation = emailValidation;
+module.exports.resetPasswordValidation = resetPasswordValidation;
 module.exports.courseVaildation = courseVaildation;

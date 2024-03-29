@@ -2,6 +2,9 @@ const router = require("express").Router();
 const registerValidation = require("../validation").registerVaildation;
 const loginValidation = require("../validation").loginValidation;
 const passwordValidation = require("../validation").passwordValidation;
+const emailValidation = require("../validation").emailValidation;
+const resetPasswordValidation =
+  require("../validation").resetPasswordValidation;
 const authenticateToken = require("../middleware/requireAuth");
 const User = require("../models").user;
 const jwt = require("jsonwebtoken");
@@ -52,7 +55,7 @@ router.post("/register", async (req, res) => {
     await newUser.save();
 
     // send confirm mail
-    const emailToken = jwt.sign({ email }, process.env.SECRET);
+    const emailToken = jwt.sign({ email }, process.env.EMAIL_SECERT);
     const url = `http://localhost:8080/api/user/confirmation/${emailToken}`;
 
     await transporter.verify();
@@ -60,7 +63,7 @@ router.post("/register", async (req, res) => {
       from: process.env.GMAIL_USER,
       to: email,
       subject: "Confirm Email",
-      html: `Please click this email to confirm your email: <a href="${url}">${url}</a>`,
+      html: `Please click this link to confirm your email: <a href="${url}">${url}</a>`,
     };
     transporter.sendMail(mailOptions);
 
@@ -77,7 +80,7 @@ router.get("/confirmation/:emailToken", async (req, res) => {
 
   try {
     const { emailToken } = req.params;
-    jwt.verify(emailToken, process.env.SECRET, async (err, info) => {
+    jwt.verify(emailToken, process.env.EMAIL_SECERT, async (err, info) => {
       if (err) {
         return res.status(403).send({
           error: "驗證錯誤",
@@ -241,6 +244,72 @@ router.post("/token/refresh", async (req, res) => {
   } catch (e) {
     return res.status(500).send(err);
   }
+});
+
+router.post("/forgot-password", async (req, res) => {
+  // #swagger.ignore = true
+
+  const { error } = emailValidation(req.body);
+  if (error) return res.status(400).send(error.details[0].message);
+
+  // check user
+  const foundUser = await User.findOne({ email: req.body.email });
+  if (!foundUser) return res.send({ message: "User not existed" });
+
+  const token = jwt.sign({ _id: foundUser._id }, process.env.SECRET, {
+    expiresIn: "1d",
+  });
+
+  const url = `http://localhost:3000/reset-password/${foundUser._id}/${token}`;
+
+  await transporter.verify();
+  const mailOptions = {
+    from: process.env.GMAIL_USER,
+    to: req.body.email,
+    subject: "Reset your password",
+    html: `Please click this link to reset your password: <a href="${url}">${url}</a>`,
+  };
+  transporter.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send("Error sending email");
+    } else {
+      console.log(info);
+      return res.send("Email sent");
+    }
+  });
+});
+
+router.post("/reset-password/:_id/:token", (req, res) => {
+  // #swagger.ignore = true
+
+  const { error } = resetPasswordValidation(req.body);
+  if (error) return res.status(400).send(error.details[0].message);
+
+  const { password } = req.body;
+  const { _id, token } = req.params;
+
+  jwt.verify(token, process.env.SECRET, async (err, info) => {
+    if (err) {
+      return res.send({ message: "Error with token" });
+    }
+
+    const hashValue = await bcrypt.hash(password, 10);
+    await User.findOneAndUpdate(
+      { _id },
+      {
+        password: hashValue,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    return res.send({
+      message: "更新密碼成功",
+    });
+  });
 });
 
 module.exports = router;
