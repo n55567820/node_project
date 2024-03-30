@@ -15,6 +15,8 @@ const defaultScope = [
 ];
 
 router.get("/", (req, res) => {
+  // #swagger.ignore = true
+
   const authorizationUrl = oauth2Client.generateAuthUrl({
     access_type: "offline",
     prompt: "consent",
@@ -25,6 +27,8 @@ router.get("/", (req, res) => {
 });
 
 router.get("/callback", async (req, res) => {
+  // #swagger.ignore = true
+
   const { code } = req.query;
   const { tokens } = await oauth2Client.getToken(code);
   oauth2Client.setCredentials(tokens);
