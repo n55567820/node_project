@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const authRoute = require("./routes/auth");
 const courseRoute = require("./routes/course");
+const oauthRoute = require("./routes/oauth");
 const authenticateToken = require("./middleware/requireAuth");
 const cors = require("cors");
 const port = 8080;
@@ -28,7 +29,8 @@ app.use(cors());
 
 app.use("/api/user", authRoute);
 app.use("/api/courses", authenticateToken, courseRoute);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/api/oauth", oauthRoute);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
