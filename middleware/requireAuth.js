@@ -5,6 +5,7 @@ const User = require("../models").user;
 
 const authenticateToken = (req, res, next) => {
   const token = req.headers["authorization"];
+  // const token = req.cookies.Authorization;
 
   if (!token) {
     return res.status(401).send({

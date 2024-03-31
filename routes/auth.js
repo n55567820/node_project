@@ -142,6 +142,8 @@ router.post("/login", async (req, res) => {
     const refresh = jwt.sign(tokenObject, process.env.SECRET, {
       expiresIn: "30d",
     });
+    
+    // res.cookie("Authorization", access);
     res.json({
       message: "成功登入",
       access,
