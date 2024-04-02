@@ -90,7 +90,7 @@ router.get("/confirmation/:emailToken", async (req, res) => {
       await User.findOneAndUpdate(
         { email: info.email },
         {
-          confirmed: true,
+          verified_email: true,
         },
         {
           new: true,

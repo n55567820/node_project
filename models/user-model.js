@@ -23,7 +23,7 @@ const userSchema = new Schema({
     enum: ["student", "instructor"],
     required: true,
   },
-  confirmed: {
+  verified_email: {
     type: Boolean,
     default: false,
   },
