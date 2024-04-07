@@ -56,7 +56,7 @@ router.post("/register", async (req, res) => {
 
     // send confirm mail
     const emailToken = jwt.sign({ email }, process.env.EMAIL_SECERT);
-    const url = `http://localhost:8080/api/user/confirmation/${emailToken}`;
+    const url = `${process.env.HOST}/api/user/confirmation/${emailToken}`;
 
     await transporter.verify();
     const mailOptions = {
@@ -142,7 +142,7 @@ router.post("/login", async (req, res) => {
     const refresh = jwt.sign(tokenObject, process.env.SECRET, {
       expiresIn: "30d",
     });
-    
+
     // res.cookie("Authorization", access);
     res.json({
       message: "成功登入",
@@ -262,7 +262,7 @@ router.post("/forgot-password", async (req, res) => {
     expiresIn: "1d",
   });
 
-  const url = `http://localhost:3000/reset-password/${foundUser._id}/${token}`;
+  const url = `${process.env.FRONT_HOST}/reset-password/${foundUser._id}/${token}`;
 
   await transporter.verify();
   const mailOptions = {
