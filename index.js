@@ -8,14 +8,13 @@ const courseRoute = require("./routes/course");
 const oauthRoute = require("./routes/oauth");
 const authenticateToken = require("./middleware/requireAuth");
 const cors = require("cors");
-const port = 8080;
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger-output.json");
-const cookieParser = require('cookie-parser')
+const cookieParser = require("cookie-parser");
 
 // 連結MongoDB
 mongoose
-  .connect("mongodb://mongo_db:27017/mernDB")
+  .connect(process.env.DB_URL)
   .then(() => {
     console.log("DB Connected");
   })
@@ -27,13 +26,13 @@ mongoose
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-app.use(cookieParser())
+app.use(cookieParser());
 
 app.use("/api/user", authRoute);
 app.use("/api/courses", authenticateToken, courseRoute);
 app.use("/api/oauth", oauthRoute);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+app.listen(process.env.PORT || 8080, () => {
+  console.log(`Server running`);
 });
