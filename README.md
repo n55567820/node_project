@@ -12,6 +12,7 @@ Swagger文件網址: https://node-project-61h4.onrender.com/api-docs/
 * 註冊登入系統 API : 註冊後會發送認證信確認信箱資訊。
 * 課程的 CRUD 應用 : 透過會員 JWT token 驗證後，才可執行資料操作。 
 * 部屬平台: 以 Render 部屬而成。
+* 使用 Docker 容器做開發。
 * 提供 Swagger 文件
 
 ## Swagger 文件畫面:
